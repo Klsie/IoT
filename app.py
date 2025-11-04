@@ -7,6 +7,18 @@ app = Flask(__name__)
 def saludo():
     return jsonify({"mensaje": "API funcionando en Azure 🚀"}), 200
 
+@app.route("/api/give", methods=["GET"])
+def collect():
+    try:
+        return jsonify({
+            
+        }),201
+    except Exception as e:
+        return jsonify({"error":str(e)}), 500
+    
+
+    
+
 
 # 🟡 Ruta para recibir datos del ESP32
 @app.route("/api/datos", methods=["POST"])
