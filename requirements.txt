@@ -2,4 +2,5 @@ flask
 gunicorn
 requests
 pyodbc
+joblib
 python-dotenv
