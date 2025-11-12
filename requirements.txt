@@ -3,4 +3,5 @@ gunicorn
 requests
 pyodbc
 joblib
+pandas
 python-dotenv
