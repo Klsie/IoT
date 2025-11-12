@@ -101,6 +101,15 @@ def recibir_datos():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route("/api/testenv", methods=["GET"])
+def test_env():
+    return {
+        "DB_SERVER": os.getenv("DB_SERVER"),
+        "DB_NAME": os.getenv("DB_NAME"),
+        "DB_USER": os.getenv("DB_USER"),
+        "DB_PASS": "*********" if os.getenv("DB_PASS") else None
+    }, 200
+
 # ======================================
 # 📦 OPCIONAL: Obtener últimos registros
 # ======================================
