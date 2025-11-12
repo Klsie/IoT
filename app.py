@@ -14,6 +14,7 @@ server = os.getenv("DB_SERVER")
 database = os.getenv("DB_NAME")
 username = os.getenv("DB_USER")
 password = os.getenv("DB_PASS")
+driver = '{ODBC Driver 18 for SQL Server}'  
 
 # Crear la conexión global
 def get_connection():
