@@ -20,12 +20,20 @@ driver = '{ODBC Driver 18 for SQL Server}'
 def get_connection():
     try:
         conn = pyodbc.connect(
-            f'DRIVER={driver};SERVER={server};PORT=1433;DATABASE={database};UID={username};PWD={password}'
+            f'DRIVER={{ODBC Driver 18 for SQL Server}};'
+            f'SERVER={server};'
+            f'PORT=1433;'
+            f'DATABASE={database};'
+            f'UID={username};'
+            f'PWD={password};'
+            'Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;'
         )
+        print("✅ Conexión exitosa a Azure SQL")
         return conn
     except Exception as e:
-        print("❌ Error de conexión a Azure SQL:", e)
+        print("❌ Error de conexión a Azure SQL:", e)  # 👈 Esto mostrará el error real
         return None
+
 
 
 # ================================
@@ -116,21 +124,36 @@ def test_env():
 # ======================================
 @app.route("/api/registros", methods=["GET"])
 def obtener_registros():
+    conn = None
     try:
+        # Parámetros opcionales de paginación
+        limite = int(request.args.get("limit", 10))  # default 10
+        if limite > 100:
+            limite = 100  # Protección contra cargas excesivas
+
         conn = get_connection()
         if not conn:
             return jsonify({"error": "No se pudo conectar a la base de datos"}), 500
 
         cursor = conn.cursor()
-        cursor.execute("SELECT TOP 10 * FROM DatosArenero ORDER BY id DESC")
+        query = f"SELECT TOP ({limite}) * FROM DatosArenero ORDER BY id DESC"
+        cursor.execute(query)
+
         columnas = [column[0] for column in cursor.description]
         registros = [dict(zip(columnas, row)) for row in cursor.fetchall()]
-        conn.close()
 
-        return jsonify({"registros": registros}), 200
+        if not registros:
+            return jsonify({"message": "No hay registros disponibles"}), 200
+
+        return jsonify({"total": len(registros), "registros": registros}), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+    finally:
+        if conn:
+            conn.close()
+
 
 
 # ================================
