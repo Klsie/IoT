@@ -78,9 +78,24 @@ def recibir_datos():
         if peso is None or distancia is None or limpieza is None:
             return jsonify({"error": "Faltan datos requeridos"}), 400
 
+        # Convertir a tipos nativos (evita numpy.int64)
+        try:
+            peso = float(peso)
+            distancia = float(distancia)
+            limpieza = int(limpieza)
+        except ValueError:
+            return jsonify({"error": "Los datos deben ser numéricos"}), 400
+
         # 🧠 Generar predicción con el modelo
-        df = pd.DataFrame([[peso, distancia, limpieza]], columns=["peso_gato", "distancia", "limpieza"])
-        prediccion = model.predict(df)[0] if model else "Error: modelo no disponible"
+        if model:
+            df = pd.DataFrame([[peso, distancia, limpieza]], 
+                              columns=["peso_gato", "distancia", "limpieza"])
+            pred = model.predict(df)[0]
+
+            # Convertir predicción a tipo Python
+            prediccion = int(pred) if hasattr(pred, "item") else int(pred)
+        else:
+            prediccion = None
 
         # 💾 Guardar en Azure SQL
         conn = get_connection()
@@ -102,7 +117,7 @@ def recibir_datos():
             "peso": peso,
             "distancia": distancia,
             "limpieza": limpieza,
-            "prediccion": int(prediccion) if isinstance(prediccion, (int, float)) else prediccion
+            "prediccion": prediccion
         }), 201
 
     except Exception as e:
