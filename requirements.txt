@@ -5,3 +5,4 @@ pyodbc
 joblib
 pandas
 python-dotenv
+scikit-learn
