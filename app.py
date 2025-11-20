@@ -153,6 +153,37 @@ def obtener_registros():
     finally:
         if conn:
             conn.close()
+# ======================================
+# 📦 Prediccion: Obtener registros de Prueba API
+# ======================================
+
+@app.route("/api/prediccion", methods=["POST"])
+def hacer_prediccion():
+    try:
+        data = request.get_json()
+
+        peso = data.get("peso")
+        distancia = data.get("distancia")
+        limpieza = data.get("limpieza")
+
+        if peso is None or distancia is None or limpieza is None:
+            return jsonify({"error": "Faltan datos para la predicción"}), 400
+
+        modelo = joblib.load("modelo_arenero.pkl")
+
+        df = pd.DataFrame([[peso, distancia, limpieza]], 
+                          columns=["peso_gato","distancia","limpieza"])
+
+        prediccion = modelo.predict(df)[0]
+
+        return jsonify({
+            "input": data,
+            "prediccion": int(prediccion)
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 
 
