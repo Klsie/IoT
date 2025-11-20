@@ -88,14 +88,23 @@ def recibir_datos():
 
         # 🧠 Generar predicción con el modelo
         if model:
-            df = pd.DataFrame([[peso, distancia, limpieza]], 
+            df = pd.DataFrame([[peso, distancia, limpieza]],
                               columns=["peso_gato", "distancia", "limpieza"])
             pred = model.predict(df)[0]
 
-            # Convertir predicción a tipo Python
-            prediccion = int(pred) if hasattr(pred, "item") else int(pred)
+            # Convertir cualquier numpy tipo a Python nativo
+            if hasattr(pred, "item"):
+                prediccion = int(pred.item())
+            else:
+                prediccion = int(pred)
         else:
             prediccion = None
+
+        # Convertir a nativos nuevamente por si acaso
+        peso = float(peso)
+        distancia = float(distancia)
+        limpieza = int(limpieza)
+        prediccion = int(prediccion) if prediccion is not None else None
 
         # 💾 Guardar en Azure SQL
         conn = get_connection()
@@ -111,7 +120,6 @@ def recibir_datos():
         else:
             print("⚠️ No se guardaron datos, conexión a SQL fallida.")
 
-        # 🟢 Respuesta al cliente
         return jsonify({
             "status": "ok",
             "peso": peso,
@@ -123,6 +131,7 @@ def recibir_datos():
     except Exception as e:
         print("❌ Error en /api/datos:", e)
         return jsonify({"error": str(e)}), 500
+
 
 
 @app.route("/api/testenv", methods=["GET"])
