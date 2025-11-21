@@ -33,9 +33,7 @@ def get_connection():
     except Exception as e:
         print("❌ Error de conexión a Azure SQL:", e)  # 👈 Esto mostrará el error real
         return None
-
-
-
+    
 # ================================
 # 🔹 CARGAR MODELO DE ML
 # ================================
@@ -48,7 +46,7 @@ except Exception as e:
 
 
 # ================================
-# 🔹 RUTAS
+# 🔹  RUTAS INICIO y PRUEBAS
 # ================================
 @app.route("/", methods=["GET"])
 def root():
@@ -59,6 +57,14 @@ def root():
 def saludo():
     return jsonify({"mensaje": "API funcionando correctamente"}), 200
 
+@app.route("/api/testenv", methods=["GET"])
+def test_env():
+    return {
+        "DB_SERVER": os.getenv("DB_SERVER"),
+        "DB_NAME": os.getenv("DB_NAME"),
+        "DB_USER": os.getenv("DB_USER"),
+        "DB_PASS": "*********" if os.getenv("DB_PASS") else None
+    }, 200
 
 # ======================================
 # 🧩 ENDPOINT PRINCIPAL: PREDICCIÓN Y BD
@@ -131,20 +137,9 @@ def recibir_datos():
     except Exception as e:
         print("❌ Error en /api/datos:", e)
         return jsonify({"error": str(e)}), 500
-
-
-
-@app.route("/api/testenv", methods=["GET"])
-def test_env():
-    return {
-        "DB_SERVER": os.getenv("DB_SERVER"),
-        "DB_NAME": os.getenv("DB_NAME"),
-        "DB_USER": os.getenv("DB_USER"),
-        "DB_PASS": "*********" if os.getenv("DB_PASS") else None
-    }, 200
-
+    
 # ======================================
-# 📦 OPCIONAL: Obtener últimos registros
+# 📦 Obtener últimos registros
 # ======================================
 @app.route("/api/registros", methods=["GET"])
 def obtener_registros():
@@ -177,42 +172,10 @@ def obtener_registros():
     finally:
         if conn:
             conn.close()
-# ======================================
-# 📦 Prediccion: Obtener registros de Prueba API
-# ======================================
-
-@app.route("/api/prediccion", methods=["POST"])
-def hacer_prediccion():
-    try:
-        data = request.get_json()
-
-        peso = data.get("peso")
-        distancia = data.get("distancia")
-        limpieza = data.get("limpieza")
-
-        if peso is None or distancia is None or limpieza is None:
-            return jsonify({"error": "Faltan datos para la predicción"}), 400
-
-        modelo = joblib.load("modelo_arenero.pkl")
-
-        df = pd.DataFrame([[peso, distancia, limpieza]], 
-                          columns=["peso_gato","distancia","limpieza"])
-
-        prediccion = modelo.predict(df)[0]
-
-        return jsonify({
-            "input": data,
-            "prediccion": int(prediccion)
-        }), 200
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-
+            
 # ======================================
 # 🚀 ACTIVAR / DESACTIVAR LIMPIEZA
 # ======================================
-
 # Variable global para indicar si se pidió limpieza
 limpieza_solicitada = False
 
@@ -246,7 +209,6 @@ def estado_limpieza():
         "limpieza_solicitada": limpieza_solicitada
     }), 200
 
-
 # ======================================
 # 🚀 ESP32 NOTIFICA QUE YA LIMPIÓ
 # ======================================
@@ -260,8 +222,6 @@ def limpieza_realizada():
         "status": "ok",
         "mensaje": "Limpieza completada y reiniciada"
     }), 200
-
-
 
 # ================================
 # 🔧 EJECUCIÓN LOCAL
