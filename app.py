@@ -209,6 +209,58 @@ def hacer_prediccion():
         return jsonify({"error": str(e)}), 500
 
 
+# ======================================
+# 🚀 ACTIVAR / DESACTIVAR LIMPIEZA
+# ======================================
+
+# Variable global para indicar si se pidió limpieza
+limpieza_solicitada = False
+
+@app.route("/api/activar_limpieza", methods=["POST"])
+def activar_limpieza():
+    global limpieza_solicitada
+    data = request.get_json()
+
+    activar = data.get("activar")
+
+    # Validar booleano
+    if activar is None:
+        return jsonify({"error": "Falta el parámetro 'activar' (true/false)"}), 400
+
+    limpieza_solicitada = bool(activar)
+
+    return jsonify({
+        "status": "ok",
+        "limpieza_solicitada": limpieza_solicitada
+    }), 200
+
+
+# ======================================
+# 🚀 ESP32 CONSULTA SI DEBE LIMPIAR
+# ======================================
+@app.route("/api/estado_limpieza", methods=["GET"])
+def estado_limpieza():
+    global limpieza_solicitada
+
+    return jsonify({
+        "limpieza_solicitada": limpieza_solicitada
+    }), 200
+
+
+# ======================================
+# 🚀 ESP32 NOTIFICA QUE YA LIMPIÓ
+# ======================================
+@app.route("/api/limpieza_realizada", methods=["POST"])
+def limpieza_realizada():
+    global limpieza_solicitada
+
+    limpieza_solicitada = False
+
+    return jsonify({
+        "status": "ok",
+        "mensaje": "Limpieza completada y reiniciada"
+    }), 200
+
 
 
 # ================================
